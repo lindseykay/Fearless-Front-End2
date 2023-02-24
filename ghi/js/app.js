@@ -1,5 +1,22 @@
+function createCard(name, description, pictureUrl, start, end) {
+    return `
+    <div class="card mb-3 shadow">
+      <img src="${pictureUrl}" class="card-img-top">
+      <div class="card-body">
+        <h5 class="card-title">${name}</h5>
+        <p class="card-text">${description}</p>
+      </div>
+      <div class="card-footer">${start} - ${end}</div>
+    </div>
+  `;
+}
+
+
 window.addEventListener('DOMContentLoaded', async () => {
     const url = 'http://localhost:8000/api/conferences/';
+    const columns = document.querySelectorAll('.col');
+    let colIdx = 0
+
 
     try {
         const response = await fetch(url);
@@ -9,22 +26,23 @@ window.addEventListener('DOMContentLoaded', async () => {
         } else {
             const data = await response.json();
 
-            const conference = data.conferences[0];
-            const nameTag = document.querySelector('.card-title');
-            nameTag.innerHTML = conference.name;
-
-            const detailUrl = `http://localhost:8000${conference.href}`;
-            const detailResponse = await fetch(detailUrl);
-            if (detailResponse.ok) {
-                const details = await detailResponse.json();
-                console.log(details)
-                const detailTag = document.querySelector('.card-text');
-                detailTag.innerHTML = details.conference.description;
-
-                const imageTag = document.querySelector('.card-img-top');
-                imageTag.src = details.conference.location.picture_url;
-            } else {
-                console.log("could not retreieve conference details")
+            for (let conference of data.conferences) {
+                const detailUrl = `http://localhost:8000${conference.href}`;
+                const detailResponse = await fetch(detailUrl);
+                if (detailResponse.ok) {
+                    const details = await detailResponse.json();
+                    const name = details.conference.name;
+                    const description = details.conference.description;
+                    const pictureUrl = details.conference.location.picture_url;
+                    const start = new Date(details.conference.starts).toLocaleDateString()
+                    const end = new Date(details.conference.ends).toLocaleDateString()
+                    const html = createCard(name, description, pictureUrl, start, end);
+                    const column = columns[colIdx % 3]
+                    column.innerHTML += html
+                    colIdx = (colIdx + 1) % 3
+                } else {
+                    console.log("could not retreive conference details")
+                }
             }
         }
 
