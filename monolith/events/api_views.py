@@ -6,7 +6,12 @@ from common.json import ModelEncoder
 from .acls import get_photo, get_weather_data
 from .models import Conference, Location, State
 
-
+# class StateEncoder(ModelEncoder):
+#     model = State
+#     properties = [
+#         "name",
+#         "abbreviation",
+#     ]
 class LocationListEncoder(ModelEncoder):
     model = Location
     properties = ["name", "picture_url"]
@@ -228,3 +233,17 @@ def api_show_location(request, pk):
             encoder=LocationDetailEncoder,
             safe=False,
         )
+
+@require_http_methods(["GET"])
+def api_list_states(request):
+    if request.method == "GET":
+        # states = State.objects.all()
+        # return JsonResponse({"states": states}, encoder=StateEncoder)
+        states = State.objects.all().order_by("name")
+        state_list = []
+        for state in states:
+            d={}
+            d["name"]=state.name
+            d["abbreviation"]=state.abbreviation
+            state_list.append(d)
+        return JsonResponse({"states": state_list})
